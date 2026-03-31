@@ -498,7 +498,7 @@
     }
 
     // ─────────────────────────── FOOD JOURNAL (AI) ───────────────────────────
-    const GEMINI_API_KEY = "AIzaSyCrDzZa3hjprT9O8u0ji5kS3hIIkynW2jA";
+    const GEMINI_API_KEY = "AIzaSyD1gxJzI5nj9MYY_SzdKUolI0Aa9qIIaRE";
 
     function updateFoodUI(dayData) {
         let total = 0;
