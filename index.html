@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js?v=2"></script>
-    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 
@@ -288,9 +288,46 @@
 
     </main>
 
+    <!-- FAB PARAMÈTRES IA -->
+    <button class="fab-settings" id="fab-settings" title="Paramètres IA">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </button>
+
+    <!-- MODAL PARAMÈTRES IA -->
+    <div class="modal hidden" id="api-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔐 Clés d'API Sécurisées</h2>
+                <button class="btn-close-modal" id="btn-close-api-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 20px;">
+                    Tes clés sont stockées <strong>exclusivement dans ton navigateur (Local Storage)</strong>. Elles ne sont jamais envoyées sur aucun serveur tiers (ni GitHub).
+                </p>
+                
+                <div class="input-group">
+                    <label for="key-gemini">Google Gemini (Flash 2.5)</label>
+                    <input type="password" id="key-gemini" placeholder="AIzaSy..." class="api-input">
+                </div>
+                
+                <div class="input-group">
+                    <label for="key-openai">OpenAI (ChatGPT)</label>
+                    <input type="password" id="key-openai" placeholder="sk-..." class="api-input">
+                </div>
+                
+                <div class="input-group">
+                    <label for="key-grok">xAI (Grok)</label>
+                    <input type="password" id="key-grok" placeholder="xai-..." class="api-input">
+                </div>
+
+                <button class="btn btn-primary" id="save-api-keys" style="width: 100%; margin-top: 10px;">Sauvegarder les clés</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js?v=8"></script>
-    <script src="app.js?v=8"></script>
+    <script src="firebase-config.js?v=11"></script>
+    <script src="app.js?v=11"></script>
 </body>
 </html>

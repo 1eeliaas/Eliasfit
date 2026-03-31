@@ -498,14 +498,82 @@
     }
 
     // ─────────────────────────── FOOD JOURNAL (AI) ───────────────────────────
-    const GEMINI_API_KEY = "AIzaSyD1gxJzI5nj9MYY_SzdKUolI0Aa9qIIaRE";
+
+    function getAiProviders() {
+        const geminiKey = localStorage.getItem('api_key_gemini') || "";
+        const openaiKey = localStorage.getItem('api_key_openai') || "";
+        const grokKey = localStorage.getItem('api_key_grok') || "";
+
+        return [
+            {
+                name: "Gemini",
+                key: geminiKey,
+                call: async (text, apiKey) => {
+                    const prompt = `Tu es un expert en nutrition. Analyse le repas suivant : "${text}". Génère une réponse UNIQUEMENT au format JSON strict (pas de markdown \`\`\`json). Le JSON doit contenir : {"calories": entier_kcal, "protein": entier_grammes, "carbs": entier_grammes, "fat": entier_grammes, "quantity": "chaine_courte_ex_250g", "summary": "resume_tres_court_du_repas", "emoji": "un_seul_emoji_representatif", "image_prompt": "two_or_three_english_keywords_for_food_photography"}`;
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }],
+                            generationConfig: { responseMimeType: "application/json" }
+                        })
+                    });
+                    const resData = await response.json();
+                    if (resData.error) throw new Error(resData.error.code === 429 ? '429: ' + resData.error.message : resData.error.message);
+                    return resData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
+                }
+            },
+            {
+                name: "ChatGPT",
+                key: openaiKey,
+                call: async (text, apiKey) => {
+                    const prompt = `Tu es un expert en nutrition. Analyse le repas suivant : "${text}". Génère une réponse UNIQUEMENT au format JSON strict. Le JSON doit contenir : {"calories": entier_kcal, "protein": entier_grammes, "carbs": entier_grammes, "fat": entier_grammes, "quantity": "chaine_courte_ex_250g", "summary": "resume_tres_court_du_repas", "emoji": "un_seul_emoji_representatif", "image_prompt": "two_or_three_english_keywords_for_food_photography"}`;
+                    const response = await fetch(`https://api.openai.com/v1/chat/completions`, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-4o-mini",
+                            messages: [{ role: "user", content: prompt }],
+                            response_format: { type: "json_object" }
+                        })
+                    });
+                    const resData = await response.json();
+                    if (resData.error) throw new Error(resData.error.code === 'rate_limit_exceeded' ? '429: ' + resData.error.message : resData.error.message);
+                    return resData.choices?.[0]?.message?.content?.trim() || "{}";
+                }
+            },
+            {
+                name: "Grok",
+                key: grokKey,
+                call: async (text, apiKey) => {
+                    const prompt = `Tu es un expert en nutrition. Analyse le repas suivant : "${text}". Génère une réponse UNIQUEMENT au format JSON strict (format RAW json sans balises markdown). Le JSON doit contenir : {"calories": entier_kcal, "protein": entier_grammes, "carbs": entier_grammes, "fat": entier_grammes, "quantity": "chaine_courte_ex_250g", "summary": "resume_tres_court_du_repas", "emoji": "un_seul_emoji_representatif", "image_prompt": "two_or_three_english_keywords_for_food_photography"}`;
+                    const response = await fetch(`https://api.x.ai/v1/chat/completions`, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: "grok-beta",
+                            messages: [{ role: "system", content: "You are a JSON generator." }, { role: "user", content: prompt }]
+                        })
+                    });
+                    const resData = await response.json();
+                    if (resData.error) throw new Error(resData.error.code === 'rate_limit_exceeded' ? '429: ' + resData.error.message : resData.error.message);
+                    return resData.choices?.[0]?.message?.content?.trim() || "{}";
+                }
+            }
+        ];
+    }
 
     function updateFoodUI(dayData) {
         let total = 0;
         ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(meal => {
             const m = dayData.food.meals[meal];
             const container = $(`#cards-${meal}`);
-            const inputContainer = $(`#input-container-${meal}`);
             const mealInput = $(`#meal-${meal}`);
             const resultDiv = $(`#result-${meal}`);
 
@@ -568,7 +636,6 @@
                 $(`#kcal-${meal}`).textContent = `${slotTotal} kcal`;
                 total += slotTotal;
             } else {
-                // Empty mode
                 mealInput.value = '';
                 $(`#kcal-${meal}`).textContent = '—';
                 resultDiv.classList.remove('visible');
@@ -578,42 +645,60 @@
         $('#zero-monster-cb').checked = dayData.food.zeroMonster || false;
     }
 
+    let currentProviderIndex = 0;
+
     async function analyzeMeal(text) {
         if (!text || text.trim() === '') return null;
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: `Tu es un expert en nutrition. Analyse le repas suivant : "${text}". Génère une réponse UNIQUEMENT au format JSON strict (pas de markdown \`\`\`json). Le JSON doit contenir : {"calories": entier_kcal, "protein": entier_grammes, "carbs": entier_grammes, "fat": entier_grammes, "quantity": "chaine_courte_ex_250g", "summary": "resume_tres_court_du_repas", "emoji": "un_seul_emoji_representatif", "image_prompt": "two_or_three_english_keywords_for_food_photography"}` }]
-                    }],
-                    generationConfig: {
-                        responseMimeType: "application/json"
-                    }
-                })
-            });
-            const resData = await response.json();
-            if (resData.error) {
-                console.error('Gemini API Error details:', resData.error);
-                if (resData.error.code === 429) {
-                    showToast('Quota API dépassé. Attends un peu.');
-                    throw new Error('429: ' + resData.error.message);
-                }
-                throw new Error(resData.error.message);
-            }
-            const reply = resData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
-            const jsonStr = reply.replace(/```json/gi, '').replace(/```/gi, '').trim();
-            const parsed = JSON.parse(jsonStr);
-            return {
-                kcal: parseInt(parsed.calories, 10) || 0,
-                details: parsed
-            };
-        } catch (e) {
-            console.error('Gemini API Error:', e);
-            if (e.message && e.message.includes('429')) return { error: 429 };
+        
+        const providers = getAiProviders();
+        
+        // Si absolument aucune clé n'est configurée, alerter l'utilisateur et ouvrir la modale
+        const hasAnyKey = providers.some(p => p.key && p.key.trim() !== "");
+        if (!hasAnyKey) {
+            showToast("⚠️ Aucune clé API ! Ouvre les paramètres (en bas à droite)");
+            $('#api-modal').classList.remove('hidden');
             return null;
         }
+
+        let attempts = 0;
+        let lastError429 = false;
+
+        while (attempts < providers.length) {
+            const provider = providers[currentProviderIndex];
+            
+            // On avance l'index pour le prochain appel (Round-Robin dynamique)
+            currentProviderIndex = (currentProviderIndex + 1) % providers.length;
+            
+            // On ignore le fournisseur si la clé n'est pas renseignée
+            if (!provider.key || provider.key.trim() === "") {
+                attempts++;
+                continue;
+            }
+
+            try {
+                console.log(`Tentative d'analyse avec ${provider.name}...`);
+                const reply = await provider.call(text, provider.key);
+                const jsonStr = reply.replace(/```json/gi, '').replace(/```/gi, '').trim();
+                const parsed = JSON.parse(jsonStr);
+                
+                console.log(`${provider.name} a réussi l'analyse !`);
+                return {
+                    kcal: parseInt(parsed.calories, 10) || 0,
+                    details: parsed
+                };
+            } catch (e) {
+                console.error(`Erreur avec ${provider.name}:`, e.message);
+                if (e.message && e.message.includes('429')) {
+                    lastError429 = true;
+                }
+                attempts++;
+                // La boucle continue automatiquement pour essayer le prochain fournisseur !
+            }
+        }
+
+        // Si on a fait le tour de tous les providers configurés SANS AUCUN succès
+        if (lastError429) return { error: 429 };
+        return null;
     }
 
     function initFood(data, dayData) {
@@ -654,7 +739,7 @@
                     updateFoodUI(dayData);
                     updateScore(data, dayData);
                 } else if (result && result.error === 429) {
-                    showToast('Quota API Gemini épuisé. Attends 1 minute.');
+                    showToast('Quotas de toutes les IA épuisés. Réessaie plus tard.');
                 } else {
                     showToast('Erreur IA. Réessaie.');
                 }
@@ -1107,6 +1192,22 @@
 
         // Back button
         $('#btn-back').addEventListener('click', goBackToCalendar);
+
+        // API Modal events
+        $('#fab-settings').addEventListener('click', () => {
+            $('#key-gemini').value = localStorage.getItem('api_key_gemini') || '';
+            $('#key-openai').value = localStorage.getItem('api_key_openai') || '';
+            $('#key-grok').value = localStorage.getItem('api_key_grok') || '';
+            $('#api-modal').classList.remove('hidden');
+        });
+        $('#btn-close-api-modal').addEventListener('click', () => $('#api-modal').classList.add('hidden'));
+        $('#save-api-keys').addEventListener('click', () => {
+            localStorage.setItem('api_key_gemini', $('#key-gemini').value.trim());
+            localStorage.setItem('api_key_openai', $('#key-openai').value.trim());
+            localStorage.setItem('api_key_grok', $('#key-grok').value.trim());
+            $('#api-modal').classList.add('hidden');
+            showToast('✅ Clés sauvegardées localement !');
+        });
 
         // Collapsible cards logic
         document.addEventListener('click', (e) => {
