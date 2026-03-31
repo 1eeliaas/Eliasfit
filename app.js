@@ -594,6 +594,13 @@
                 })
             });
             const resData = await response.json();
+            if (resData.error) {
+                console.error('Gemini API Error details:', resData.error);
+                if (resData.error.code === 429) {
+                    showToast('Quota API dépassé. Attends un peu.');
+                }
+                throw new Error(resData.error.message);
+            }
             const reply = resData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
             const jsonStr = reply.replace(/```json/gi, '').replace(/```/gi, '').trim();
             const parsed = JSON.parse(jsonStr);
