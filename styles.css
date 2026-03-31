@@ -43,7 +43,9 @@
 }
 
 /* ─────────────────────────── RESET ─────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -70,6 +72,7 @@ input[type="number"]::-webkit-outer-spin-button {
     appearance: none;
     margin: 0;
 }
+
 input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
@@ -165,7 +168,7 @@ input[type="number"] {
     border-radius: var(--radius-sm);
     background: var(--bg-card);
     border: 1px solid var(--border);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     cursor: pointer;
     transition: all 0.15s ease;
     font-family: var(--font-display);
@@ -179,7 +182,7 @@ input[type="number"] {
 .cal-day:hover {
     background: var(--bg-card-hover);
     border-color: var(--border-hover);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     transform: scale(1.04);
 }
 
@@ -260,7 +263,7 @@ input[type="number"] {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 20px 22px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
     animation: fadeInUp 0.4s ease 0.1s backwards;
 }
 
@@ -358,10 +361,22 @@ input[type="number"] {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 22px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, padding 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s ease;
     position: relative;
     overflow: hidden;
+}
+
+.card.collapsed {
+    padding: 14px 22px;
+    background: #fdfdfd; 
+    border-color: #eaecef;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.card.collapsed:hover {
+    background: #f8fafc;
+    border-color: #e2e8f0;
 }
 
 .card::before {
@@ -370,7 +385,7 @@ input[type="number"] {
 
 .card:hover {
     border-color: var(--border-hover);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .card-header {
@@ -379,6 +394,11 @@ input[type="number"] {
     gap: 12px;
     margin-bottom: 18px;
     position: relative;
+    transition: margin-bottom 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.card.collapsed .card-header {
+    margin-bottom: 0;
 }
 
 .card-icon {
@@ -391,12 +411,35 @@ input[type="number"] {
     flex-shrink: 0;
 }
 
-.water-icon { background: #eff6ff; color: #3b82f6; }
-.steps-icon { background: #f0fdf4; color: #16a34a; }
-.walk-icon { background: #fef3c7; color: #d97706; }
-.food-icon { background: #fdf2f8; color: #db2777; }
-.weight-icon { background: #f5f3ff; color: #7c3aed; }
-.face-icon { background: #fef2f2; color: #ef4444; }
+.water-icon {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.steps-icon {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+.walk-icon {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.food-icon {
+    background: #fdf2f8;
+    color: #db2777;
+}
+
+.weight-icon {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+.face-icon {
+    background: #fef2f2;
+    color: #ef4444;
+}
 
 .card-title {
     font-family: var(--font-display);
@@ -415,6 +458,54 @@ input[type="number"] {
     color: var(--text-primary);
 }
 
+.header-titles {
+    flex: 1;
+}
+
+.collapsible-header {
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.2s;
+}
+
+.collapsible-header:hover {
+    opacity: 0.8;
+}
+
+.chevron-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s;
+    margin-left: auto;
+}
+
+.card:hover .chevron-icon {
+    color: #3b82f6; /* Subtle blue tint to hint interactivity */
+}
+
+.card.collapsed .chevron-icon {
+    transform: rotate(-90deg);
+    color: var(--text-muted);
+}
+
+.card-content {
+    overflow: hidden;
+    max-height: 2000px;
+    opacity: 1;
+    transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease, margin-top 0.3s ease;
+}
+
+.card.collapsed .card-content {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
 /* ─────────────────────────── WATER TRACKER ─────────────────────────── */
 .water-progress-label {
     margin-left: auto;
@@ -424,23 +515,90 @@ input[type="number"] {
     color: #3b82f6;
 }
 
-.water-gauge-container {
-    margin-bottom: 16px;
+.water-container {
+    margin-top: 12px;
+    width: 100%;
 }
 
-.water-gauge-bar {
+.water-slider-wrapper {
+    position: relative;
+    padding-bottom: 24px;
+}
+
+.water-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 14px;
+    border-radius: 100px;
+    outline: none;
+    /* Track progression using CSS variable updated by JS */
+    background: linear-gradient(to right, #3b82f6 var(--slider-pct, 0%), var(--bg-input) var(--slider-pct, 0%));
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+    margin-top: 6px;
+    cursor: pointer;
+}
+
+.water-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+    border: 3px solid #3b82f6;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.water-slider::-webkit-slider-thumb:active {
+    transform: scale(1.15);
+    background: #eff6ff;
+}
+
+.water-slider::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+    border: 3px solid #3b82f6;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.water-slider::-moz-range-thumb:active {
+    transform: scale(1.15);
+    background: #eff6ff;
+}
+
+.water-slider-labels {
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.water-slider-labels span {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.water-slider-labels span::before {
+    content: '';
+    width: 2px;
     height: 6px;
-    border-radius: 100px;
-    background: var(--bg-input);
-    overflow: hidden;
-}
-
-.water-gauge-fill {
-    height: 100%;
-    width: 0%;
-    border-radius: 100px;
-    background: linear-gradient(90deg, #60a5fa, #3b82f6);
-    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    background-color: var(--border);
+    border-radius: 2px;
+    margin-bottom: 2px;
 }
 
 .water-bottles {
@@ -610,6 +768,16 @@ input[type="number"] {
     position: relative;
 }
 
+.btn-delete-item {
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.btn-delete-item:hover {
+    color: #ef4444; /* red hover */
+    background: #fee2e2;
+}
+
 .input-with-unit .unit {
     position: absolute;
     right: 12px;
@@ -638,6 +806,155 @@ input[type="number"] {
 }
 
 /* ─────────────────────────── FOOD JOURNAL ─────────────────────────── */
+.meals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.meal-slot {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+}
+
+.meal-slot-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.meal-slot-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.meal-slot-kcal {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.meal-slot-input {
+    display: flex;
+    gap: 8px;
+}
+
+.meal-ai-result {
+    font-size: 0.75rem;
+    color: var(--success);
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.meal-ai-result.visible {
+    opacity: 1;
+}
+
+/* Nouvelles règles pour la carte repas IA améliorée */
+.meal-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.meal-cards-container:empty {
+    margin-bottom: 0px;
+}
+
+.meal-card {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    position: relative;
+}
+
+.meal-card.hidden {
+    display: none;
+}
+
+.meal-card-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #e2e8f0;
+    flex-shrink: 0;
+}
+
+.meal-card-content {
+    flex: 1;
+    min-width: 0; 
+}
+
+.meal-card-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meal-card-qty {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin: 0 0 6px 0;
+}
+
+.meal-card-macros {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.meal-card-macros .badge {
+    padding: 3px 6px;
+    font-size: 0.6rem;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+}
+
+.badge-protein {
+    background: #fee2e2;
+    color: #ef4444;
+    border: 1px solid #fca5a5;
+}
+
+.badge-carbs {
+    background: #dcfce7;
+    color: #22c55e;
+    border: 1px solid #86efac;
+}
+
+.badge-fat {
+    background: #fef9c3;
+    color: #eab308;
+    border: 1px solid #fde047;
+}
+
+.btn-edit-meal {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-edit-meal:hover {
+    background: var(--border);
+    color: var(--text-primary);
+}
 .food-checklist {
     display: flex;
     flex-direction: column;
@@ -690,12 +1007,12 @@ input[type="number"] {
     transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-input[type="checkbox"]:checked ~ .food-check-visual {
+input[type="checkbox"]:checked~.food-check-visual {
     background: var(--success);
     border-color: var(--success);
 }
 
-input[type="checkbox"]:checked ~ .food-check-visual::after {
+input[type="checkbox"]:checked~.food-check-visual::after {
     opacity: 1;
     transform: scale(1);
 }
@@ -704,7 +1021,7 @@ input[type="checkbox"]:checked ~ .food-check-visual::after {
     border-color: var(--danger);
 }
 
-input[type="checkbox"]:checked ~ .food-check-critical {
+input[type="checkbox"]:checked~.food-check-critical {
     background: var(--success);
     border-color: var(--success);
 }
@@ -728,7 +1045,7 @@ input[type="checkbox"]:checked ~ .food-check-critical {
     color: var(--danger);
 }
 
-input[type="checkbox"]:checked ~ .food-name {
+input[type="checkbox"]:checked~.food-name {
     color: var(--success);
 }
 
@@ -748,7 +1065,7 @@ input[type="checkbox"]:checked ~ .food-name {
     background: #fee2e2;
 }
 
-input[type="checkbox"]:checked ~ .food-tag.tag-crucial {
+input[type="checkbox"]:checked~.food-tag.tag-crucial {
     background: var(--success-light);
     color: var(--success);
 }
@@ -856,7 +1173,7 @@ input[type="checkbox"]:checked ~ .food-tag.tag-crucial {
     left: 0;
     right: 0;
     padding: 3px;
-    background: rgba(0,0,0,0.55);
+    background: rgba(0, 0, 0, 0.55);
     font-size: 0.5rem;
     text-align: center;
     font-weight: 600;
@@ -873,7 +1190,7 @@ input[type="checkbox"]:checked ~ .food-tag.tag-crucial {
     border-radius: var(--radius-lg);
     padding: 18px 22px;
     margin-top: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .score-label {
@@ -1008,6 +1325,7 @@ input[type="checkbox"]:checked ~ .food-tag.tag-crucial {
         opacity: 0;
         transform: translateY(14px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1018,12 +1336,29 @@ input[type="checkbox"]:checked ~ .food-tag.tag-crucial {
     animation: fadeInUp 0.4s ease backwards;
 }
 
-.card:nth-child(1) { animation-delay: 0.03s; }
-.card:nth-child(2) { animation-delay: 0.06s; }
-.card:nth-child(3) { animation-delay: 0.09s; }
-.card:nth-child(4) { animation-delay: 0.12s; }
-.card:nth-child(5) { animation-delay: 0.15s; }
-.card:nth-child(6) { animation-delay: 0.18s; }
+.card:nth-child(1) {
+    animation-delay: 0.03s;
+}
+
+.card:nth-child(2) {
+    animation-delay: 0.06s;
+}
+
+.card:nth-child(3) {
+    animation-delay: 0.09s;
+}
+
+.card:nth-child(4) {
+    animation-delay: 0.12s;
+}
+
+.card:nth-child(5) {
+    animation-delay: 0.15s;
+}
+
+.card:nth-child(6) {
+    animation-delay: 0.18s;
+}
 
 .daily-score-bar {
     animation: fadeInUp 0.4s ease 0.2s backwards;
@@ -1041,7 +1376,7 @@ input[type="checkbox"]:checked ~ .food-tag.tag-crucial {
     border-radius: var(--radius-xl);
     font-size: 0.82rem;
     font-weight: 600;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
     z-index: 9999;
     opacity: 0;
     transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1058,39 +1393,50 @@ input[type="checkbox"]:checked ~ .food-tag.tag-crucial {
     .dashboard {
         padding: 18px 14px 50px;
     }
+
     .card {
         padding: 16px;
     }
+
     .walk-inputs {
         grid-template-columns: 1fr;
         gap: 8px;
     }
+
     .water-bottles {
         grid-template-columns: repeat(3, 1fr);
     }
+
     .steps-ring-container {
         width: 140px;
         height: 140px;
     }
+
     .steps-count {
         font-size: 1.6rem;
     }
+
     .daily-score-bar {
         flex-wrap: wrap;
     }
+
     .badge {
         font-size: 0.58rem;
         padding: 4px 10px;
     }
+
     .calendar-view {
         padding: 24px 14px 50px;
     }
+
     .cal-month-title {
         font-size: 1.15rem;
     }
+
     .cal-day {
         font-size: 0.75rem;
     }
+
     .cal-day-number {
         font-size: 0.72rem;
     }

@@ -89,13 +89,49 @@
     function getDayData(data, key) {
         if (!data[key]) {
             data[key] = {
-                water: [false, false, false, false, false, false],
+                water: 0,
                 steps: 0,
                 walk: null,
-                food: { eggs: false, tuna: false, fromage: false, zeroMonster: false },
+                food: {
+                    meals: {
+                        breakfast: { items: [] },
+                        lunch:     { items: [] },
+                        dinner:    { items: [] },
+                        snacks:    { items: [] }
+                    },
+                    zeroMonster: false
+                },
                 weight: null,
-                facePhotos: [],
+                faceUrl: null,
             };
+        } else {
+            // Migrations pour la rétrocompatibilité
+            if (Array.isArray(data[key].water)) {
+                data[key].water = data[key].water.filter(Boolean).length * 0.5;
+            }
+            if (data[key].food && data[key].food.eggs !== undefined && !data[key].food.meals) {
+                const zM = data[key].food.zeroMonster || false;
+                data[key].food = {
+                    meals: {
+                        breakfast: { items: [] },
+                        lunch:     { items: [] },
+                        dinner:    { items: [] },
+                        snacks:    { items: [] }
+                    },
+                    zeroMonster: zM
+                };
+            }
+            // Migrate existing single meals to array logic
+            if (data[key].food && data[key].food.meals) {
+                ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(meal => {
+                    const m = data[key].food.meals[meal];
+                    if (m && m.items === undefined) {
+                        data[key].food.meals[meal] = {
+                            items: (m.text && m.text.trim() !== '') ? [{ text: m.text, kcal: m.kcal, details: m.details }] : []
+                        };
+                    }
+                });
+            }
         }
         return data[key];
     }
@@ -103,12 +139,20 @@
     function calcDayScore(dayData) {
         if (!dayData) return 0;
         let completed = 0;
-        if (dayData.water && dayData.water.filter(Boolean).length >= 5) completed++;
-        if (dayData.water && dayData.water.every(Boolean)) completed++;
+        if (dayData.water >= 2.5) completed++;
+        if (dayData.water >= 3) completed++;
         if (dayData.steps >= 15000) completed++;
         if (dayData.walk) completed++;
         if (dayData.walk && dayData.walk.incline >= 12) completed++;
-        if (dayData.food && (dayData.food.eggs || dayData.food.tuna || dayData.food.fromage)) completed++;
+        
+        let mealsLogged = 0;
+        if (dayData.food && dayData.food.meals) {
+             Object.values(dayData.food.meals).forEach(m => {
+                 if (m.items && m.items.length > 0) mealsLogged++;
+                 else if (m.text && m.text.trim() !== '') mealsLogged++; // fallback for unmigrated logic
+             });
+        }
+        if (mealsLogged > 0) completed++;
         if (dayData.food && dayData.food.zeroMonster) completed++;
         if (dayData.weight) completed++;
         return completed;
@@ -290,35 +334,34 @@
 
     // ─────────────────────────── WATER TRACKER ───────────────────────────
     function initWater(data, dayData) {
-        const container = $('#water-bottles');
-        container.innerHTML = '';
+        const slider = $('#water-slider');
+        
+        // Clone input to clear listeners
+        const newSlider = slider.cloneNode(true);
+        slider.parentNode.replaceChild(newSlider, slider);
 
-        for (let i = 0; i < 6; i++) {
-            const bottle = document.createElement('div');
-            bottle.className = 'water-bottle' + (dayData.water[i] ? ' filled' : '');
-            bottle.innerHTML = `
-                <span class="bottle-icon">${dayData.water[i] ? '●' : '○'}</span>
-                <span class="bottle-label">0.5L</span>
-            `;
-            bottle.addEventListener('click', () => {
-                dayData.water[i] = !dayData.water[i];
-                saveData(data);
-                updateWaterUI(dayData);
-                bottle.classList.toggle('filled');
-                bottle.querySelector('.bottle-icon').textContent = dayData.water[i] ? '●' : '○';
-                updateScore(data, dayData);
-            });
-            container.appendChild(bottle);
-        }
+        newSlider.value = dayData.water || 0;
+        updateWaterUI(dayData.water || 0);
 
-        updateWaterUI(dayData);
+        newSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            updateWaterUI(val);
+        });
+
+        newSlider.addEventListener('change', (e) => {
+            dayData.water = parseFloat(e.target.value);
+            saveData(data);
+            updateScore(data, dayData);
+        });
     }
 
-    function updateWaterUI(dayData) {
-        const filled = dayData.water.filter(Boolean).length;
-        const pct = (filled / 6) * 100;
-        $('#water-gauge-fill').style.width = pct + '%';
-        $('#water-progress-label').textContent = `${(filled * 0.5).toFixed(1)} / 3L`;
+    function updateWaterUI(waterVal) {
+        const pct = (waterVal / 3) * 100;
+        const slider = $('#water-slider');
+        if (slider) {
+            slider.style.setProperty('--slider-pct', pct + '%');
+        }
+        $('#water-progress-label').textContent = `${waterVal.toFixed(1)} / 3.0L`;
     }
 
     // ─────────────────────────── STEP COUNTER ───────────────────────────
@@ -426,7 +469,14 @@
     }
 
     function populateWalkUI(walk) {
-        if (!walk) return;
+        if (!walk) {
+            $('#walk-duration').value = '';
+            $('#walk-incline').value = '';
+            $('#walk-speed').value = '';
+            $('#mission-badge').classList.remove('visible');
+            $('#walk-summary').innerHTML = '';
+            return;
+        }
         $('#walk-duration').value = walk.duration;
         $('#walk-incline').value = walk.incline;
         $('#walk-speed').value = walk.speed;
@@ -447,26 +497,191 @@
         `;
     }
 
-    // ─────────────────────────── FOOD JOURNAL ───────────────────────────
+    // ─────────────────────────── FOOD JOURNAL (AI) ───────────────────────────
+    const GEMINI_API_KEY = "AIzaSyCrDzZa3hjprT9O8u0ji5kS3hIIkynW2jA";
+
+    function updateFoodUI(dayData) {
+        let total = 0;
+        ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(meal => {
+            const m = dayData.food.meals[meal];
+            const container = $(`#cards-${meal}`);
+            const inputContainer = $(`#input-container-${meal}`);
+            const mealInput = $(`#meal-${meal}`);
+            const resultDiv = $(`#result-${meal}`);
+
+            container.innerHTML = '';
+            let slotTotal = 0;
+
+            if (m.items && m.items.length > 0) {
+                m.items.forEach((item, index) => {
+                    slotTotal += (item.kcal || 0);
+                    
+                    const card = document.createElement('div');
+                    card.className = 'meal-card';
+                    
+                    let mediaHtml = '';
+                    if (item.details) {
+                        if (item.details.image_prompt) {
+                            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(item.details.image_prompt)}?width=128&height=128&nologo=true`;
+                            const fallbackEmoji = item.details.emoji || '🍽️';
+                            mediaHtml = `<img class="meal-card-img" src="${url}" alt="Photo ${meal}" onerror="this.outerHTML='<div class=\\'meal-card-img\\' style=\\'display:flex;align-items:center;justify-content:center;font-size:32px;\\'>${fallbackEmoji}</div>'">`;
+                        } else if (item.details.emoji) {
+                            mediaHtml = `<div class="meal-card-img" style="display:flex;align-items:center;justify-content:center;font-size:32px;">${item.details.emoji}</div>`;
+                        } else {
+                            mediaHtml = `<div class="meal-card-img"></div>`;
+                        }
+                    } else {
+                        mediaHtml = `<div class="meal-card-img"></div>`;
+                    }
+
+                    const title = item.details ? (item.details.summary || item.text) : item.text;
+                    const qty = item.details ? (item.details.quantity || '') : '';
+                    const kcalText = item.kcal !== null ? `${item.kcal} kcal` : '—';
+                    
+                    let macrosHtml = '';
+                    if (item.details && item.details.protein !== undefined) {
+                        macrosHtml = `
+                            <div class="meal-card-macros">
+                                <span class="badge badge-protein">P: ${item.details.protein}g</span>
+                                <span class="badge badge-carbs">G: ${item.details.carbs}g</span>
+                                <span class="badge badge-fat">L: ${item.details.fat}g</span>
+                            </div>
+                        `;
+                    }
+
+                    card.innerHTML = `
+                        ${mediaHtml}
+                        <div class="meal-card-content">
+                            <h4 class="meal-card-title">${title}</h4>
+                            <p class="meal-card-qty">${qty}</p>
+                            ${macrosHtml}
+                            <div style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-top: 4px;">${kcalText}</div>
+                        </div>
+                        <button class="btn-icon btn-delete-item" data-meal="${meal}" data-index="${index}" title="Supprimer">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                    `;
+                    container.appendChild(card);
+                });
+                
+                mealInput.value = '';
+                $(`#kcal-${meal}`).textContent = `${slotTotal} kcal`;
+                total += slotTotal;
+            } else {
+                // Empty mode
+                mealInput.value = '';
+                $(`#kcal-${meal}`).textContent = '—';
+                resultDiv.classList.remove('visible');
+            }
+        });
+        $('#food-total-badge').textContent = `${total} kcal`;
+        $('#zero-monster-cb').checked = dayData.food.zeroMonster || false;
+    }
+
+    async function analyzeMeal(text) {
+        if (!text || text.trim() === '') return null;
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: `Tu es un expert en nutrition. Analyse le repas suivant : "${text}". Génère une réponse UNIQUEMENT au format JSON strict (pas de markdown \`\`\`json). Le JSON doit contenir : {"calories": entier_kcal, "protein": entier_grammes, "carbs": entier_grammes, "fat": entier_grammes, "quantity": "chaine_courte_ex_250g", "summary": "resume_tres_court_du_repas", "emoji": "un_seul_emoji_representatif", "image_prompt": "two_or_three_english_keywords_for_food_photography"}` }]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json"
+                    }
+                })
+            });
+            const resData = await response.json();
+            const reply = resData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
+            const jsonStr = reply.replace(/```json/gi, '').replace(/```/gi, '').trim();
+            const parsed = JSON.parse(jsonStr);
+            return {
+                kcal: parseInt(parsed.calories, 10) || 0,
+                details: parsed
+            };
+        } catch (e) {
+            console.error('Gemini API Error:', e);
+            return null;
+        }
+    }
+
     function initFood(data, dayData) {
-        $$('.food-checkbox').forEach((cb) => {
-            const key = cb.dataset.food;
+        const crucialCb = $('#zero-monster-cb');
+        const newCrucialCb = crucialCb.cloneNode(true);
+        crucialCb.parentNode.replaceChild(newCrucialCb, crucialCb);
 
-            // Clone to remove old listeners
-            const newCb = cb.cloneNode(true);
-            cb.parentNode.replaceChild(newCb, cb);
+        newCrucialCb.addEventListener('change', () => {
+            dayData.food.zeroMonster = newCrucialCb.checked;
+            saveData(data);
+            updateScore(data, dayData);
+            if (newCrucialCb.checked) showToast('Bravo, zéro boisson énergisante');
+        });
 
-            newCb.checked = dayData.food[key] || false;
-
-            newCb.addEventListener('change', () => {
-                dayData.food[key] = newCb.checked;
-                saveData(data);
-                updateScore(data, dayData);
-                if (key === 'zeroMonster' && newCb.checked) {
-                    showToast('Bravo, zéro boisson énergisante');
+        $$('.meal-estimate-btn').forEach(btn => {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', async () => {
+                const mealKey = newBtn.dataset.meal;
+                const text = $(`#meal-${mealKey}`).value.trim();
+                const resultDiv = $(`#result-${mealKey}`);
+                
+                if (!text) return;
+                
+                newBtn.textContent = '...';
+                newBtn.disabled = true;
+                
+                const result = await analyzeMeal(text);
+                
+                newBtn.textContent = 'Estimer';
+                newBtn.disabled = false;
+                
+                if (result !== null) {
+                    if (!dayData.food.meals[mealKey].items) dayData.food.meals[mealKey].items = [];
+                    dayData.food.meals[mealKey].items.push({ text, kcal: result.kcal, details: result.details });
+                    saveData(data);
+                    updateFoodUI(dayData);
+                    updateScore(data, dayData);
+                } else {
+                    showToast('Erreur IA. Réessaie.');
                 }
             });
         });
+
+        // Delete button listener for meal items inside containers
+        $$('.meal-cards-container').forEach(container => {
+            const newContainer = container.cloneNode(false); // empty clone clears children
+            container.parentNode.replaceChild(newContainer, container);
+            
+            newContainer.addEventListener('click', (e) => {
+                const btn = e.target.closest('.btn-delete-item');
+                if (!btn) return;
+                
+                const mealKey = btn.dataset.meal;
+                const index = parseInt(btn.dataset.index, 10);
+                
+                dayData.food.meals[mealKey].items.splice(index, 1);
+                saveData(data);
+                updateFoodUI(dayData);
+                updateScore(data, dayData);
+            });
+        });
+        
+        $$('.meal-input').forEach(input => {
+            const newInput = input.cloneNode(true);
+            input.parentNode.replaceChild(newInput, input);
+            newInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const mealKey = newInput.id.replace('meal-', '');
+                    document.querySelector(`.meal-estimate-btn[data-meal="${mealKey}"]`).click();
+                }
+            });
+        });
+
+        // Update UI at the very end to populate the newly cloned containers
+        updateFoodUI(dayData);
     }
 
     // ─────────────────────────── WEIGHT CHART ───────────────────────────
@@ -733,10 +948,20 @@
 
         newBtn.addEventListener('click', () => {
             if (!confirm('Réinitialiser toutes les données de ce jour ?')) return;
+            
+            // Delete from Firebase explicitly so merge:true doesn't resurrect it
+            if (typeof firebase !== 'undefined' && useFirebase && db) {
+                const updateObj = {};
+                updateObj[`days.${selectedDateKey}`] = firebase.firestore.FieldValue.delete();
+                db.collection('users').doc('default').update(updateObj).catch((e) => console.warn('Reset cloud fail', e));
+            }
+            
             delete data[selectedDateKey];
             saveData(data);
-            // Re-initialize dashboard
+            
+            // Re-initialize dashboard and calendar
             initDashboard();
+            renderCalendar();
             showToast('Journée réinitialisée');
         });
     }
@@ -871,6 +1096,17 @@
 
         // Back button
         $('#btn-back').addEventListener('click', goBackToCalendar);
+
+        // Collapsible cards logic
+        document.addEventListener('click', (e) => {
+            const header = e.target.closest('.collapsible-header');
+            if (header) {
+                const card = header.closest('.card');
+                if (card) {
+                    card.classList.toggle('collapsed');
+                }
+            }
+        });
     }
 
     if (document.readyState === 'loading') {

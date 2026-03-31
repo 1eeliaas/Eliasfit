@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js?v=2"></script>
+    <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
 
@@ -64,155 +64,209 @@
 
             <!-- WATER TRACKER CARD -->
             <section class="card card-water" id="card-water">
-                <div class="card-header">
+                <div class="card-header collapsible-header">
                     <div class="card-icon water-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
-                    <div>
+                    <div class="header-titles">
                         <h2 class="card-title">Hydratation</h2>
                         <p class="card-subtitle">Objectif : <strong>3L</strong></p>
                     </div>
                     <div class="water-progress-label" id="water-progress-label">0 / 3L</div>
+                    <div class="chevron-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
                 </div>
-                <div class="water-gauge-container">
-                    <div class="water-gauge-bar">
-                        <div class="water-gauge-fill" id="water-gauge-fill"></div>
+                <div class="card-content">
+                    <div class="water-container">
+                        <div class="water-slider-wrapper">
+                            <input type="range" class="water-slider" id="water-slider" min="0" max="3" step="0.1" value="0">
+                            <div class="water-slider-labels">
+                                <span>0L</span><span>1L</span><span>2L</span><span>3L</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="water-bottles" id="water-bottles"></div>
             </section>
 
             <!-- STEP COUNTER CARD -->
             <section class="card card-steps" id="card-steps">
-                <div class="card-header">
+                <div class="card-header collapsible-header">
                     <div class="card-icon steps-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-                    <div>
+                    <div class="header-titles">
                         <h2 class="card-title">Compteur de Pas</h2>
                         <p class="card-subtitle">Objectif : <strong>15 000 – 20 000</strong></p>
                     </div>
+                    <div class="chevron-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
                 </div>
-                <div class="steps-ring-container">
-                    <svg class="steps-ring" viewBox="0 0 200 200">
-                        <circle class="steps-ring-bg" cx="100" cy="100" r="85"/>
-                        <circle class="steps-ring-progress" id="steps-ring-progress" cx="100" cy="100" r="85"/>
-                    </svg>
-                    <div class="steps-ring-center">
-                        <span class="steps-count" id="steps-count">0</span>
-                        <span class="steps-label">pas</span>
+                <div class="card-content">
+                    <div class="steps-ring-container">
+                        <svg class="steps-ring" viewBox="0 0 200 200">
+                            <circle class="steps-ring-bg" cx="100" cy="100" r="85"/>
+                            <circle class="steps-ring-progress" id="steps-ring-progress" cx="100" cy="100" r="85"/>
+                        </svg>
+                        <div class="steps-ring-center">
+                            <span class="steps-count" id="steps-count">0</span>
+                            <span class="steps-label">pas</span>
+                        </div>
                     </div>
-                </div>
-                <div class="steps-input-group">
-                    <input type="number" class="input-field" id="steps-input" placeholder="Entrer nombre de pas" min="0" max="99999">
-                    <button class="btn btn-green" id="steps-save-btn">Valider</button>
+                    <div class="steps-input-group">
+                        <input type="number" class="input-field" id="steps-input" placeholder="Entrer nombre de pas" min="0" max="99999">
+                        <button class="btn btn-green" id="steps-save-btn">Valider</button>
+                    </div>
                 </div>
             </section>
 
             <!-- INCLINE WALK CARD -->
             <section class="card card-walk" id="card-walk">
-                <div class="card-header">
+                <div class="card-header collapsible-header">
                     <div class="card-icon walk-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3l4 8 5-5 5 15H2L8 3z"/></svg></div>
-                    <div>
+                    <div class="header-titles">
                         <h2 class="card-title">Marche Inclinée</h2>
                         <p class="card-subtitle">Pousse la pente !</p>
                     </div>
                     <div class="badge-container" id="badge-container">
                         <span class="badge badge-mission" id="mission-badge">Mission Accomplie</span>
                     </div>
+                    <div class="chevron-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
                 </div>
-                <div class="walk-inputs">
-                    <div class="walk-input-item">
-                        <label for="walk-duration">Durée</label>
-                        <div class="input-with-unit">
-                            <input type="number" class="input-field" id="walk-duration" placeholder="0" min="0" max="999">
-                            <span class="unit">min</span>
+                <div class="card-content">
+                    <div class="walk-inputs">
+                        <div class="walk-input-item">
+                            <label for="walk-duration">Durée</label>
+                            <div class="input-with-unit">
+                                <input type="number" class="input-field" id="walk-duration" placeholder="0" min="0" max="999">
+                                <span class="unit">min</span>
+                            </div>
+                        </div>
+                        <div class="walk-input-item">
+                            <label for="walk-incline">Inclinaison</label>
+                            <div class="input-with-unit">
+                                <input type="number" class="input-field" id="walk-incline" placeholder="0" min="0" max="30" step="0.5">
+                                <span class="unit">%</span>
+                            </div>
+                        </div>
+                        <div class="walk-input-item">
+                            <label for="walk-speed">Vitesse</label>
+                            <div class="input-with-unit">
+                                <input type="number" class="input-field" id="walk-speed" placeholder="0" min="0" max="15" step="0.1">
+                                <span class="unit">km/h</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="walk-input-item">
-                        <label for="walk-incline">Inclinaison</label>
-                        <div class="input-with-unit">
-                            <input type="number" class="input-field" id="walk-incline" placeholder="0" min="0" max="30" step="0.5">
-                            <span class="unit">%</span>
-                        </div>
-                    </div>
-                    <div class="walk-input-item">
-                        <label for="walk-speed">Vitesse</label>
-                        <div class="input-with-unit">
-                            <input type="number" class="input-field" id="walk-speed" placeholder="0" min="0" max="15" step="0.1">
-                            <span class="unit">km/h</span>
-                        </div>
-                    </div>
+                    <button class="btn btn-green btn-full" id="walk-save-btn">Enregistrer la séance</button>
+                    <div class="walk-summary" id="walk-summary"></div>
                 </div>
-                <button class="btn btn-green btn-full" id="walk-save-btn">Enregistrer la séance</button>
-                <div class="walk-summary" id="walk-summary"></div>
             </section>
 
-            <!-- FOOD JOURNAL CARD -->
-            <section class="card card-food" id="card-food">
-                <div class="card-header">
+            <!-- FOOD JOURNAL CARD (MEAL-BASED + AI) -->
+            <section class="card card-food card-wide" id="card-food">
+                <div class="card-header collapsible-header">
                     <div class="card-icon food-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
-                    <div>
+                    <div class="header-titles">
                         <h2 class="card-title">Journal Alimentaire</h2>
-                        <p class="card-subtitle">Protéines du jour</p>
+                        <p class="card-subtitle">IA (Calories)</p>
                     </div>
+                    <div class="food-total-badge" id="food-total-badge">0 kcal</div>
+                    <div class="chevron-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
                 </div>
-                <div class="food-checklist" id="food-checklist">
-                    <label class="food-item" id="food-item-eggs">
-                        <input type="checkbox" class="food-checkbox" data-food="eggs">
-                        <span class="food-check-visual"></span>
-                        <span class="food-name">Œufs</span>
-                    </label>
-                    <label class="food-item" id="food-item-tuna">
-                        <input type="checkbox" class="food-checkbox" data-food="tuna">
-                        <span class="food-check-visual"></span>
-                        <span class="food-name">Thon</span>
-                    </label>
-                    <label class="food-item" id="food-item-fromage">
-                        <input type="checkbox" class="food-checkbox" data-food="fromage">
-                        <span class="food-check-visual"></span>
-                        <span class="food-name">Fromage Blanc</span>
+                <div class="card-content">
+                    <div class="meals-list" id="meals-list">
+                        <div class="meal-slot" data-meal="breakfast">
+                            <div class="meal-slot-header">
+                                <span class="meal-slot-name">Petit-déjeuner</span>
+                                <span class="meal-slot-kcal" id="kcal-breakfast">—</span>
+                            </div>
+                            <div class="meal-cards-container" id="cards-breakfast"></div>
+                            <div class="meal-slot-input" id="input-container-breakfast">
+                                <input type="text" class="input-field meal-input" id="meal-breakfast" placeholder="Ex: 2 oeufs, 1 toast...">
+                                <button class="btn btn-green meal-estimate-btn" data-meal="breakfast">Estimer</button>
+                            </div>
+                            <div class="meal-ai-result" id="result-breakfast"></div>
+                        </div>
+                        <div class="meal-slot" data-meal="lunch">
+                            <div class="meal-slot-header">
+                                <span class="meal-slot-name">Déjeuner</span>
+                                <span class="meal-slot-kcal" id="kcal-lunch">—</span>
+                            </div>
+                            <div class="meal-cards-container" id="cards-lunch"></div>
+                            <div class="meal-slot-input" id="input-container-lunch">
+                                <input type="text" class="input-field meal-input" id="meal-lunch" placeholder="Ex: poulet, riz...">
+                                <button class="btn btn-green meal-estimate-btn" data-meal="lunch">Estimer</button>
+                            </div>
+                            <div class="meal-ai-result" id="result-lunch"></div>
+                        </div>
+                        <div class="meal-slot" data-meal="dinner">
+                            <div class="meal-slot-header">
+                                <span class="meal-slot-name">Dîner</span>
+                                <span class="meal-slot-kcal" id="kcal-dinner">—</span>
+                            </div>
+                            <div class="meal-cards-container" id="cards-dinner"></div>
+                            <div class="meal-slot-input" id="input-container-dinner">
+                                <input type="text" class="input-field meal-input" id="meal-dinner" placeholder="Ex: soupe...">
+                                <button class="btn btn-green meal-estimate-btn" data-meal="dinner">Estimer</button>
+                            </div>
+                            <div class="meal-ai-result" id="result-dinner"></div>
+                        </div>
+                        <div class="meal-slot" data-meal="snacks">
+                            <div class="meal-slot-header">
+                                <span class="meal-slot-name">Snacks</span>
+                                <span class="meal-slot-kcal" id="kcal-snacks">—</span>
+                            </div>
+                            <div class="meal-cards-container" id="cards-snacks"></div>
+                            <div class="meal-slot-input" id="input-container-snacks">
+                                <input type="text" class="input-field meal-input" id="meal-snacks" placeholder="Ex: amandes...">
+                                <button class="btn btn-green meal-estimate-btn" data-meal="snacks">Estimer</button>
+                            </div>
+                            <div class="meal-ai-result" id="result-snacks"></div>
+                        </div>
+                    </div>
+                    <div class="food-divider"></div>
+                    <label class="food-item food-item-critical" id="food-item-zero-monster">
+                        <input type="checkbox" class="food-checkbox" id="zero-monster-cb">
+                        <span class="food-check-visual food-check-critical"></span>
+                        <span class="food-name">Zéro Monster / Red Bull</span>
+                        <span class="food-tag tag-crucial">CRUCIAL</span>
                     </label>
                 </div>
-                <div class="food-divider"></div>
-                <label class="food-item food-item-critical" id="food-item-zero-monster">
-                    <input type="checkbox" class="food-checkbox" data-food="zeroMonster">
-                    <span class="food-check-visual food-check-critical"></span>
-                    <span class="food-name">Zéro Monster / Red Bull</span>
-                    <span class="food-tag tag-crucial">CRUCIAL</span>
-                </label>
             </section>
 
             <!-- WEIGHT CHART CARD -->
             <section class="card card-weight card-wide" id="card-weight">
-                <div class="card-header">
+                <div class="card-header collapsible-header">
                     <div class="card-icon weight-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
-                    <div>
+                    <div class="header-titles">
                         <h2 class="card-title">Suivi de Poids</h2>
                         <p class="card-subtitle">Évolution sur 30 jours</p>
                     </div>
+                    <div class="chevron-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
                 </div>
-                <div class="weight-input-row">
-                    <input type="number" class="input-field" id="weight-input" placeholder="Poids (kg)" min="30" max="300" step="0.1">
-                    <button class="btn btn-green" id="weight-save-btn">Ajouter</button>
-                </div>
-                <div class="chart-container">
-                    <canvas id="weight-chart"></canvas>
+                <div class="card-content">
+                    <div class="weight-input-row">
+                        <input type="number" class="input-field" id="weight-input" placeholder="Poids (kg)" min="30" max="300" step="0.1">
+                        <button class="btn btn-green" id="weight-save-btn">Ajouter</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="weight-chart"></canvas>
+                    </div>
                 </div>
             </section>
 
             <!-- FACE COMPARISON CARD -->
             <section class="card card-face" id="card-face">
-                <div class="card-header">
+                <div class="card-header collapsible-header">
                     <div class="card-icon face-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
-                    <div>
+                    <div class="header-titles">
                         <h2 class="card-title">Suivi Visage</h2>
                         <p class="card-subtitle">Compare ton affinement</p>
                     </div>
+                    <div class="chevron-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
                 </div>
-                <div class="face-upload-area" id="face-upload-area">
-                    <input type="file" class="face-file-input" id="face-file-input" accept="image/*" capture="user">
-                    <div class="face-upload-placeholder" id="face-upload-placeholder">
-                        <span class="upload-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
-                        <span class="upload-text">Upload Photo du jour</span>
+                <div class="card-content">
+                    <div class="face-upload-area" id="face-upload-area">
+                        <input type="file" class="face-file-input" id="face-file-input" accept="image/*" capture="user">
+                        <div class="face-upload-placeholder" id="face-upload-placeholder">
+                            <span class="upload-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+                            <span class="upload-text">Upload Photo du jour</span>
+                        </div>
+                        <img class="face-preview" id="face-preview" alt="Aperçu visage">
                     </div>
-                    <img class="face-preview" id="face-preview" alt="Aperçu visage">
                 </div>
                 <div class="face-gallery" id="face-gallery"></div>
                 <button class="btn btn-outline btn-full" id="face-clear-btn">Effacer les photos</button>
@@ -236,7 +290,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="app.js"></script>
+    <script src="firebase-config.js?v=4"></script>
+    <script src="app.js?v=4"></script>
 </body>
 </html>
