@@ -541,7 +541,11 @@
                         })
                     });
                     const resData = await response.json();
-                    if (resData.error) throw new Error(resData.error.code === 'rate_limit_exceeded' ? '429: ' + resData.error.message : resData.error.message);
+                    if (resData.error) {
+                        if (resData.error.code === 'insufficient_quota') throw new Error('QUOTA_OPENAI');
+                        if (resData.error.code === 'invalid_api_key') throw new Error('INVALID_KEY_OPENAI');
+                        throw new Error(resData.error.code === 'rate_limit_exceeded' ? '429: ' + resData.error.message : resData.error.message);
+                    }
                     return resData.choices?.[0]?.message?.content?.trim() || "{}";
                 }
             },
@@ -688,6 +692,16 @@
                 };
             } catch (e) {
                 console.error(`Erreur avec ${provider.name}:`, e.message);
+                
+                if (e.message.includes('QUOTA_OPENAI')) {
+                    showToast('⚠️ Clé OpenAI reconnue, mais 0 crédit. (Ajoute 5$ sur OpenAI)');
+                    return null;
+                }
+                if (e.message.includes('INVALID_KEY_OPENAI')) {
+                    showToast('❌ Clé OpenAI invalide. Vérifie tes paramètres.');
+                    return null;
+                }
+                
                 if (e.message && e.message.includes('429')) {
                     lastError429 = true;
                 }
