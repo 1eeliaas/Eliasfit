@@ -598,6 +598,7 @@
                 console.error('Gemini API Error details:', resData.error);
                 if (resData.error.code === 429) {
                     showToast('Quota API dépassé. Attends un peu.');
+                    throw new Error('429: ' + resData.error.message);
                 }
                 throw new Error(resData.error.message);
             }
