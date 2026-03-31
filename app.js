@@ -610,6 +610,7 @@
             };
         } catch (e) {
             console.error('Gemini API Error:', e);
+            if (e.message && e.message.includes('429')) return { error: 429 };
             return null;
         }
     }
@@ -645,12 +646,14 @@
                 newBtn.textContent = 'Estimer';
                 newBtn.disabled = false;
                 
-                if (result !== null) {
+                if (result !== null && !result.error) {
                     if (!dayData.food.meals[mealKey].items) dayData.food.meals[mealKey].items = [];
                     dayData.food.meals[mealKey].items.push({ text, kcal: result.kcal, details: result.details });
                     saveData(data);
                     updateFoodUI(dayData);
                     updateScore(data, dayData);
+                } else if (result && result.error === 429) {
+                    showToast('Quota API Gemini épuisé. Attends 1 minute.');
                 } else {
                     showToast('Erreur IA. Réessaie.');
                 }
