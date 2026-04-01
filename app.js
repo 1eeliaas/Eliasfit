@@ -500,9 +500,9 @@
     // ─────────────────────────── FOOD JOURNAL (AI) ───────────────────────────
 
     function getAiProviders() {
-        const geminiKey = localStorage.getItem('api_key_gemini') || "";
-        const openaiKey = localStorage.getItem('api_key_openai') || "";
-        const grokKey = localStorage.getItem('api_key_grok') || "";
+        const geminiKey = (window.MY_SECURE_API_KEYS && window.MY_SECURE_API_KEYS.gemini) || localStorage.getItem('api_key_gemini') || "";
+        const openaiKey = (window.MY_SECURE_API_KEYS && window.MY_SECURE_API_KEYS.openai) || localStorage.getItem('api_key_openai') || "";
+        const grokKey = (window.MY_SECURE_API_KEYS && window.MY_SECURE_API_KEYS.grok) || localStorage.getItem('api_key_grok') || "";
 
         return [
             {
@@ -666,6 +666,7 @@
 
         let attempts = 0;
         let lastError429 = false;
+        let lastErrorMessage = "";
 
         while (attempts < providers.length) {
             const provider = providers[currentProviderIndex];
@@ -692,13 +693,14 @@
                 };
             } catch (e) {
                 console.error(`Erreur avec ${provider.name}:`, e.message);
+                lastErrorMessage = `[${provider.name}] ` + e.message;
                 
                 if (e.message.includes('QUOTA_OPENAI')) {
                     showToast('⚠️ Clé OpenAI reconnue, mais 0 crédit. (Ajoute 5$ sur OpenAI)');
                     return null;
                 }
-                if (e.message.includes('INVALID_KEY_OPENAI')) {
-                    showToast('❌ Clé OpenAI invalide. Vérifie tes paramètres.');
+                if (e.message.includes('INVALID_KEY_OPENAI') || e.message.includes('API key not valid') || e.message.includes('Unauthorized') || e.message.includes('401')) {
+                    showToast(`❌ Clé API invalide pour ${provider.name}. Vérifie tes paramètres.`);
                     return null;
                 }
                 
@@ -712,6 +714,7 @@
 
         // Si on a fait le tour de tous les providers configurés SANS AUCUN succès
         if (lastError429) return { error: 429 };
+        if (lastErrorMessage) return { error: 'OTHER', message: lastErrorMessage };
         return null;
     }
 
@@ -754,8 +757,12 @@
                     updateScore(data, dayData);
                 } else if (result && result.error === 429) {
                     showToast('Quotas de toutes les IA épuisés. Réessaie plus tard.');
+                } else if (result && result.error === 'OTHER') {
+                    showToast('Erreur : ' + result.message);
                 } else {
-                    showToast('Erreur IA. Réessaie.');
+                    if (result !== null) {
+                        showToast('Erreur IA. Réessaie.');
+                    }
                 }
             });
         });
@@ -1209,16 +1216,17 @@
 
         // API Modal events
         $('#fab-settings').addEventListener('click', () => {
-            $('#key-gemini').value = localStorage.getItem('api_key_gemini') || '';
-            $('#key-openai').value = localStorage.getItem('api_key_openai') || '';
-            $('#key-grok').value = localStorage.getItem('api_key_grok') || '';
+            $('#key-gemini').value = (window.MY_SECURE_API_KEYS && window.MY_SECURE_API_KEYS.gemini) || localStorage.getItem('api_key_gemini') || '';
+            $('#key-openai').value = (window.MY_SECURE_API_KEYS && window.MY_SECURE_API_KEYS.openai) || localStorage.getItem('api_key_openai') || '';
+            $('#key-grok').value = (window.MY_SECURE_API_KEYS && window.MY_SECURE_API_KEYS.grok) || localStorage.getItem('api_key_grok') || '';
             $('#api-modal').classList.remove('hidden');
         });
         $('#btn-close-api-modal').addEventListener('click', () => $('#api-modal').classList.add('hidden'));
         $('#save-api-keys').addEventListener('click', () => {
-            localStorage.setItem('api_key_gemini', $('#key-gemini').value.trim());
-            localStorage.setItem('api_key_openai', $('#key-openai').value.trim());
-            localStorage.setItem('api_key_grok', $('#key-grok').value.trim());
+            const cleanKey = (val) => val.trim().replace(/^["']|["']$/g, '');
+            localStorage.setItem('api_key_gemini', cleanKey($('#key-gemini').value));
+            localStorage.setItem('api_key_openai', cleanKey($('#key-openai').value));
+            localStorage.setItem('api_key_grok', cleanKey($('#key-grok').value));
             $('#api-modal').classList.add('hidden');
             showToast('✅ Clés sauvegardées localement !');
         });
