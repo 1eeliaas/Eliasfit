@@ -70,17 +70,28 @@
         if (!db) return;
         db.collection('users').doc('default').get()
             .then((doc) => {
-                if (doc.exists && doc.data().days) {
-                    const cloudData = doc.data().days;
-                    const localData = loadData();
+                if (doc.exists) {
+                    const docData = doc.data();
 
-                    // Merge: cloud wins for any key that exists in cloud
-                    const merged = { ...localData, ...cloudData };
-                    localStorage.setItem('eliasFitness', JSON.stringify(merged));
+                    if (docData.apiKeys) {
+                        ['gemini', 'openai', 'grok'].forEach(k => {
+                            if (docData.apiKeys[k]) localStorage.setItem(`api_key_${k}`, docData.apiKeys[k]);
+                        });
+                        console.log('Firebase API keys restored locally');
+                    }
 
-                    // Re-render calendar with fresh data
-                    renderCalendar();
-                    console.log('Cloud data loaded & merged');
+                    if (docData.days) {
+                        const cloudData = docData.days;
+                        const localData = loadData();
+
+                        // Merge: cloud wins for any key that exists in cloud
+                        const merged = { ...localData, ...cloudData };
+                        localStorage.setItem('eliasFitness', JSON.stringify(merged));
+
+                        // Re-render calendar with fresh data
+                        renderCalendar();
+                        console.log('Cloud data loaded & merged');
+                    }
                 }
             })
             .catch((e) => console.warn('Cloud load failed:', e));
@@ -1224,11 +1235,23 @@
         $('#btn-close-api-modal').addEventListener('click', () => $('#api-modal').classList.add('hidden'));
         $('#save-api-keys').addEventListener('click', () => {
             const cleanKey = (val) => val.trim().replace(/^["']|["']$/g, '');
-            localStorage.setItem('api_key_gemini', cleanKey($('#key-gemini').value));
-            localStorage.setItem('api_key_openai', cleanKey($('#key-openai').value));
-            localStorage.setItem('api_key_grok', cleanKey($('#key-grok').value));
+            const keys = {
+                gemini: cleanKey($('#key-gemini').value),
+                openai: cleanKey($('#key-openai').value),
+                grok: cleanKey($('#key-grok').value)
+            };
+            
+            localStorage.setItem('api_key_gemini', keys.gemini);
+            localStorage.setItem('api_key_openai', keys.openai);
+            localStorage.setItem('api_key_grok', keys.grok);
+            
+            if (useFirebase && db) {
+                db.collection('users').doc('default').set({ apiKeys: keys }, { merge: true })
+                    .catch(e => console.warn('API keys cloud sync failed:', e));
+            }
+            
             $('#api-modal').classList.add('hidden');
-            showToast('✅ Clés sauvegardées localement !');
+            showToast('✅ Clés sauvegardées localement (et Cloud) !');
         });
 
         // Collapsible cards logic
